@@ -14,7 +14,7 @@
           activityTypes: function(crmApi) {
             return crmApi('OptionValue', 'get', {
               "sequential": 1,
-              "return": ["name","value"],
+              "return": ["name","label"],
               "option_group_id": "activity_type"
             })
             .then(r => r.values, e => alert('Error fetching config.'))
@@ -49,7 +49,7 @@
     $scope.activityFields = activityFields;
 
     var typesHash = {};
-    activityTypes.forEach(t => typesHash[t.value] = t.name);
+    activityTypes.forEach(t => typesHash[t.name] = t.label);
     var columnsHash = {};
     activityFields.forEach(t => columnsHash[t.name] = t.title);
 

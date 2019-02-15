@@ -40,7 +40,7 @@
           ui-jq="select2"
           ui-options="{dropdownAutoWidth: true}"
           ng-model="editItem.types"
-          ng-options="row.value as row.name for row in activityTypes|orderBy:'name'"
+          ng-options="row.name as row.label for row in activityTypes|orderBy:'name'"
           style="width:50em;max-width:100%;"
           ></select>
       </div>
