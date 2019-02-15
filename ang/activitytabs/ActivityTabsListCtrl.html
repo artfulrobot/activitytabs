@@ -1,6 +1,5 @@
 <div class="crm-container">
   <h1 crm-page-title>{{ts('Activity Tabs')}}</h1>
-  hello?
 
   <form name="activitytabs-form" crm-ui-id-scope ng-if="screen==='list'">
     <table class="activitytabs-list" >
@@ -15,8 +14,8 @@
       <tbody>
         <tr ng-repeat="row in activitytabsList" >
           <td>{{ row.name }}</td>
-          <td>{{ row.activityTypes }}</td>
-          <td>{{ row.columns }}</td>
+          <td>{{ typeList(row.types) }}</td>
+          <td>{{ colList(row.columns) }}</td>
           <td>
             <a href ng-click="showEditScreen($index)">Edit</a>
             |
@@ -27,11 +26,8 @@
     </table>
     <a href ng-click="activitytabsList.push({name: 'New Tab', columns: ['date', 'subject', 'assigned'], types: [] })" >+ {{ ts('Add Activity Tab') }}</a>
   </form>
-  {{ activitytabsList | json }}
 
   <div ng-if="screen==='edit'">
-    {{ editIndex}}<br/>
-    {{ activitytabsList[editIndex]}}
     <form name="activitytabs-tab-form" crm-ui-id-scope >
 
       <div crm-ui-field="{name: 'activitytab.name', title: ts('Tab Name')}">
@@ -39,20 +35,36 @@
       </div>
 
       <div crm-ui-field="{name: 'activitytab.types', title: ts('Activity Types')}">
-        <input crm-ui-id="activitytab.types" name="types" ng-model="editItem.types" required />
+        <select
+          multiple
+          ui-jq="select2"
+          ui-options="{dropdownAutoWidth: true}"
+          ng-model="editItem.types"
+          ng-options="row.value as row.name for row in activityTypes|orderBy:'name'"
+          style="width:50em;max-width:100%;"
+          ></select>
       </div>
 
       <div crm-ui-field="{name: 'activitytab.columns', title: ts('Columns')}">
-        <input crm-ui-id="activitytab.types" name="columns" ng-model="editItem.columns" required />
+        <select
+          multiple
+          ui-jq="select2"
+          ui-options="{dropdownAutoWidth: true}"
+          ng-model="editItem.columns"
+          ng-options="row.name as row.title for row in activityFields|orderBy:'name'"
+          crm-ui-id="activitytab.columns"
+          style="width:50em;max-width:100%;"
+          ></select>
       </div>
 
+      <button ng-click="saveItem()" style="display:none;">Save</button>
       <button ng-click="cancelEdit()">Cancel</button>
       <button ng-click="saveItem()">Save</button>
     </form>
   </div>
 
   <div ng-if="screen==='delete'">
-    <h2>{{ ts('Delete Activity Tab !tab?', {'tab': editItem.name} )}}</h2>
+    <h2>{{ ts('Delete Activity Tab %1?', {1: editItem.name} )}}</h2>
 
     <button ng-click="cancelEdit()" >Cancel</button>
     <button ng-click="deleteItem()" >Delete</button>

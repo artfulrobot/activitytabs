@@ -10,6 +10,22 @@
           activitytabsList: function(crmApi) {
             return crmApi('Setting', 'getvalue', { name: 'activitytabs' })
             .then(r => JSON.parse(r.result), e => alert('Error fetching config.'))
+          },
+          activityTypes: function(crmApi) {
+            return crmApi('OptionValue', 'get', {
+              "sequential": 1,
+              "return": ["name","value"],
+              "option_group_id": "activity_type"
+            })
+            .then(r => r.values, e => alert('Error fetching config.'))
+          },
+          activityFields: function(crmApi) {
+            return crmApi('Activity', 'getfields', { "api_action": "get" })
+              .then(r => {
+                const opts = [];
+                Object.keys(r.values).forEach(k => { opts.push(r.values[k]); });
+                return opts;
+              });
           }
         }
       });
@@ -20,7 +36,7 @@
   //   $scope -- This is the set of variables shared between JS and HTML.
   //   crmApi, crmStatus, crmUiHelp -- These are services provided by civicrm-core.
   //   myContact -- The current contact, defined above in config().
-  angular.module('activitytabs').controller('ActivitytabsActivityTabsListCtrl', function($scope, crmApi, crmStatus, crmUiHelp, activitytabsList) {
+  angular.module('activitytabs').controller('ActivitytabsActivityTabsListCtrl', function($scope, crmApi, crmStatus, crmUiHelp, activitytabsList, activityTypes, activityFields) {
     // The ts() and hs() functions help load strings for this module.
     var ts = $scope.ts = CRM.ts('activitytabs');
     //var hs = $scope.hs = crmUiHelp({file: 'CRM/activitytabs/ActivityTabsListCtrl'}); // See: templates/CRM/activitytabs/ActivityTabsListCtrl.hlp
@@ -29,23 +45,27 @@
     $scope.screen = 'list';
     $scope.editIndex = null;
     $scope.editItem = null;
+    $scope.activityTypes = activityTypes;
+    $scope.activityFields = activityFields;
 
-    $scope.saveItem = function saveItem() {
-      activitytabsList[$scope.editIndex] = $scope.editItem;
-      $scope.cancelEdit();
-      // @todo save.
-      return;
+    var typesHash = {};
+    activityTypes.forEach(t => typesHash[t.value] = t.name);
+    var columnsHash = {};
+    activityFields.forEach(t => columnsHash[t.name] = t.title);
 
+    function saveSettings() {
       return crmStatus(
         // Status messages. For defaults, just use "{}"
         {start: ts('Saving...'), success: ts('Saved')},
         // The save action. Note that crmApi() returns a promise.
-        crmApi('Contact', 'create', {
-          id: myContact.id,
-          first_name: myContact.first_name,
-          last_name: myContact.last_name
-        })
+        crmApi('Setting', 'create', { 'activitytabs': JSON.stringify(activitytabsList) })
       );
+    }
+
+    $scope.saveItem = function saveItem() {
+      activitytabsList[$scope.editIndex] = $scope.editItem;
+      $scope.cancelEdit();
+      return saveSettings();
     };
     $scope.cancelEdit = function cancelEdit() {
       $scope.editIndex = null;
@@ -57,11 +77,6 @@
       $scope.editItem = Object.assign({}, activitytabsList[index]);
       $scope.screen = 'edit';
     };
-    $scope.deleteItem = function() {
-      activitytabsList.splice($scope.editIndex, 1);
-      $scope.cancelEdit();
-      // @todo save.
-    };
     $scope.deleteItemConfirm = function(index) {
       console.log("huh?");
       $scope.editIndex = index;
@@ -71,7 +86,13 @@
     $scope.deleteItem = function() {
       activitytabsList.splice($scope.editIndex, 1);
       $scope.cancelEdit();
-      // @todo save.
+      return saveSettings();
+    };
+    $scope.typeList = function(types) {
+      return types.map(t => typesHash[t]).join(', ');
+    };
+    $scope.colList = function(cols) {
+      return cols.map(t => columnsHash[t]).join(', ');
     };
   });
 

@@ -142,3 +142,26 @@ function activitytabs_civicrm_entityTypes(&$entityTypes) {
 
 
 
+/**
+ * Implmements hook_civicrm_tabset
+ *
+ * @see https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_tabset/
+ */
+function activitytabs_civicrm_tabset($tabsetName, &$tabs, $context) {
+  if ($tabsetName == 'civicrm/contact/view') {
+    $activitytabs = json_decode(Civi::settings()->get('activitytabs')) ?? [];
+    $contactId = $context['contact_id'];
+
+    foreach ($activitytabs as $atab) {
+      $url = CRM_Utils_System::url(
+        'civicrm/activitytabs/view',
+        "reset=1&snippet=1&force=1&cid=$contactId&activitytab=" . urlencode($atab->name));
+      $tabs[] = [
+        'id'     => 'activitytabs' . preg_replace('/[^a-zA-Z0-9-_]+/', '', $atab->name),
+        'url'    => $url,
+        'title'  => $atab->name,
+        'weight' => 300
+      ];
+    }
+  }
+}
