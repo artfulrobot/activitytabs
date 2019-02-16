@@ -46,15 +46,26 @@
       </div>
 
       <div crm-ui-field="{name: 'activitytab.columns', title: ts('Columns')}">
-        <select
-          multiple
-          ui-jq="select2"
-          ui-options="{dropdownAutoWidth: true}"
-          ng-model="editItem.columns"
-          ng-options="row.name as row.title for row in activityFields|orderBy:'name'"
-          crm-ui-id="activitytab.columns"
-          style="width:50em;max-width:100%;"
-          ></select>
+        <div>
+          <ol>
+            <li ng-repeat="col in editItem.columns" >
+              {{col}}
+              <a href ng-click="editItem.columns.splice($index, 1)">Delete</a>
+              <a href ng-click="moveCol($index, -1)">Up</a>
+              <a href ng-click="moveCol($index, 1)">Down</a>
+            </li>
+            <li>
+              <select
+                ui-jq="select2"
+                ui-options="{dropdownAutoWidth: true}"
+                ng-model="editItem.newCol"
+                ng-options="row.name as row.title for row in activityFields|orderBy:'name'"
+                crm-ui-id="activitytab.columns"
+                style="width:50em;max-width:100%;"
+                ></select>
+            </li>
+          </ol>
+        </div>
       </div>
 
       <button ng-click="saveItem()" style="display:none;">Save</button>

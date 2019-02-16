@@ -74,11 +74,25 @@
     }
     $scope.showEditScreen = function (index) {
       $scope.editIndex = index;
-      $scope.editItem = Object.assign({}, activitytabsList[index]);
+      $scope.editItem = Object.assign({newcol: ''}, activitytabsList[index]);
       $scope.screen = 'edit';
     };
+    $scope.moveCol = function moveCol(i, dir) {
+      var col = $scope.editItem.columns.splice(i, 1);
+      i += dir;
+      if (i<0) i = 0;
+      if (i > $scope.editItem.columns.length) i = $scope.editItem.columns.length;
+      $scope.editItem.columns.splice(i, 0, col[0]);
+    };
+    $scope.$watch(function() {
+      if ($scope.editItem) return $scope.editItem.newCol;
+    }, function (newVal) {
+      if ($scope.editItem && $scope.editItem.newCol && $scope.editItem.columns.indexOf(newVal) === -1) {
+        $scope.editItem.columns.push($scope.editItem.newCol);
+        $scope.editItem.newCol = '';
+      }
+    });
     $scope.deleteItemConfirm = function(index) {
-      console.log("huh?");
       $scope.editIndex = index;
       $scope.editItem = Object.assign({}, activitytabsList[index]);
       $scope.screen = 'delete';
