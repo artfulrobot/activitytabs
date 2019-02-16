@@ -165,3 +165,4 @@ function activitytabs_civicrm_tabset($tabsetName, &$tabs, $context) {
     }
   }
 }
+

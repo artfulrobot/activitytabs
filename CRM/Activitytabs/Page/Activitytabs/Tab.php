@@ -17,6 +17,7 @@ class CRM_Activitytabs_Page_Activitytabs_Tab extends CRM_Core_Page {
     //$this->_action = CRM_Utils_Request::retrieve('action', 'String', $this, FALSE, 'browse');
     //$this->_id = CRM_Utils_Request::retrieve('id', 'Positive', $this);
     $this->_contactId = CRM_Utils_Request::retrieve('cid', 'Positive', $this, empty($this->_id));
+    $this->assign('contactId', $this->_contactId);
     $requested_name = CRM_Utils_Request::retrieve('activitytab', 'String', $this, TRUE);
 
     $atabs = json_decode(Civi::settings()->get('activitytabs') ?? '[]');
@@ -35,6 +36,10 @@ class CRM_Activitytabs_Page_Activitytabs_Tab extends CRM_Core_Page {
     $this->assign('displayName', $displayName);
 
     // Look up activities.
+    // Remove activitytabs_summary from columns.
+    $return_fields = array_filter($this->_atabConfig->columns, function($field) {
+      return ($field !== 'activitytabs_summary');
+    });
     $params = [
       'target_contact_id' => $this->_contactId,
       'activity_type_id'  => ['IN' => $this->_atabConfig->types ],
@@ -59,6 +64,14 @@ class CRM_Activitytabs_Page_Activitytabs_Tab extends CRM_Core_Page {
       $v['contact_id'] = $v['source_contact_id'];
       unset($v['source_contact_id']);
     });
+
+    if (in_array('activitytabs_summary', $this->_atabConfig->columns)) {
+      // invoke hook.
+      CRM_Utils_Hook::singleton()->invoke(
+        1, $result['values'],
+        $dummy, $dummy, $dummy, $dummy, $dummy,
+        'activitytabs_summary');
+    }
 
     $this->assign('tabCount', $result['count']);
     $this->ajaxResponse['tabCount'] = $result['count'];
