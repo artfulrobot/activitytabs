@@ -127,6 +127,7 @@ class CRM_ActivityTab
 
     // Loop results to flatten the data to a table.
     $this->flattenContacts($result['values']);
+    $this->replaceActivityTypeIds($result['values']);
 
     // Rename 'source_contact_id' to 'contact_id' which is set in the config.
     if ($contact_id_index !== FALSE) {
@@ -201,6 +202,30 @@ class CRM_ActivityTab
     }
   }
   /**
+   * Replace Type IDs with names.
+   *
+   * @param array &$rows from Activity.get API result.
+   */
+  public function replaceActivityTypeIds(&$rows) {
+
+    if (!in_array('activity_type_id', $this->tab_config->columns)) {
+      return;
+    }
+
+    $types = civicrm_api3('OptionValue', 'get', [
+      'return' => ['value', 'label'],
+      'option_group_id' => 'activity_type',
+    ]);
+    $map = [];
+    foreach ($types['values'] as $type) {
+      $map[$type['value']] = $type['label'];
+    }
+
+    foreach ($rows as &$row) {
+      $row['activity_type_id'] = $map[$row['activity_type_id']];
+    }
+  }
+  /**
    * Make an array with column names as keys and column headers as values.
    *
    * This is used by the smarty template for creating the headers.
@@ -213,7 +238,10 @@ class CRM_ActivityTab
     $map = [];
     foreach ($this->tab_config->columns as $col) {
       // remove 'ID' from 'Contact ID'...
-      $map[$col] = str_replace('Contact ID', 'Contact', $result['values'][$col]['title']);
+      $map[$col] = strtr($result['values'][$col]['title'],[
+        'Contact ID' => 'Contact',
+        'Type ID' => 'Type',
+      ]);
 
       // The array keys are not the same as the 'name' values...in some cases!
       // e.g. 'subject' has arary key 'activity_subject' but it's 'subject' you
