@@ -24,7 +24,7 @@
         </tr>
       </tbody>
     </table>
-    <a href ng-click="activitytabsList.push({name: 'New Tab', columns: ['date', 'subject', 'assigned'], types: [] })" >+ {{ ts('Add Activity Tab') }}</a>
+    <a href ng-click="activitytabsList.push({name: 'New Tab', columns: ['activity_date_time', 'subject', 'assignee_contact_id'], types: [] })" >+ {{ ts('Add Activity Tab') }}</a>
   </form>
 
   <div ng-if="screen==='edit'">

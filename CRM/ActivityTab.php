@@ -153,6 +153,9 @@ class CRM_ActivityTab
     if (in_array('contact_id', $this->tab_config->columns)) {
       $relevant_cols[] = 'source_contact_id';
     }
+    if (!$relevant_cols) {
+      return;
+    }
     foreach ($rows as $row) {
       foreach ($relevant_cols as $col) {
         if (isset($row[$col])) {
@@ -167,6 +170,9 @@ class CRM_ActivityTab
           }
         }
       }
+    }
+    if (!$contact_ids) {
+      return;
     }
     $contact_details = civicrm_api3( 'Contact', 'get', [
       'id' => ['IN' => array_keys($contact_ids)],
@@ -206,7 +212,8 @@ class CRM_ActivityTab
     $result = civicrm_api3('Activity', 'getfields', [ "action"=> "get" ]);
     $map = [];
     foreach ($this->tab_config->columns as $col) {
-      $map[$col] = $result['values'][$col]['title'];
+      // remove 'ID' from 'Contact ID'...
+      $map[$col] = str_replace('Contact ID', 'Contact', $result['values'][$col]['title']);
 
       // The array keys are not the same as the 'name' values...in some cases!
       // e.g. 'subject' has arary key 'activity_subject' but it's 'subject' you
