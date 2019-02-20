@@ -49,10 +49,18 @@
         <div>
           <ol>
             <li ng-repeat="col in editItem.columns" >
-              {{col}}
-              <a href ng-click="editItem.columns.splice($index, 1)">Delete</a>
-              <a href ng-click="moveCol($index, -1)">Up</a>
-              <a href ng-click="moveCol($index, 1)">Down</a>
+              <span style="min-width:13em;display:inline-block;">{{ colList([col]) }}</span>
+              <a
+                href
+                ng-click="editItem.columns.splice($index, 1)"
+                style="display:inline-block;width:4em"
+                >Delete</a>
+              <a href ng-click="moveCol($index, -1)"
+                style="display:inline-block;width:3em"
+                >Up</a>
+              <a href ng-click="moveCol($index, 1)"
+                style="display:inline-block;width:4em"
+                >Down</a>
             </li>
             <li>
               <select
