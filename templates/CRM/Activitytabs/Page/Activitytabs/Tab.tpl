@@ -20,7 +20,9 @@
         </td>
       {/foreach}
       <td>
-        <a href="/civicrm/activity?action=view&reset=1&id={$activity.id}&cid={$contactId}&context=activity&searchContext=activity" >View</a>
+        <a href="/civicrm/activity?action=view&amp;reset=1&amp;id={$activity.id}&amp;cid={$contactId}&amp;context=activity&amp;searchContext=activity" >View</a>
+        |
+        <a href="/civicrm/activity/add?reset=1&amp;action=update&amp;id={$activity.id}&amp;cid={$contactId}&amp;context=activity" >Edit</a>
       </td>
     </tr>
     {/foreach}

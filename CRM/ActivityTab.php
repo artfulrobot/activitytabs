@@ -257,8 +257,9 @@ class CRM_ActivityTab
     foreach ($this->tab_config->columns as $col) {
       // remove 'ID' from 'Contact ID'...
       $map[$col] = strtr($result['values'][$col]['title'],[
-        'Contact ID' => 'Contact',
-        'Type ID' => 'Type',
+        'Contact ID'       => 'Contact',
+        'Activity Type ID' => 'Type',
+        'Activity Date'    => 'Date',
       ]);
 
       // The array keys are not the same as the 'name' values...in some cases!
