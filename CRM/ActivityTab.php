@@ -108,19 +108,26 @@ class CRM_ActivityTab
    */
   public function getActivities($contact_id) {
 
+    // Ensure we have activity_type_id in lookup, it's very useful even if it's
+    // not needed in the final output.
+    $return_fields = $this->tab_config->columns;
+    if (!in_array('activity_type_id', $return_fields)) {
+      $return_fields[] = 'activity_type_id';
+    }
+    // We have to doctor the return array because getfields returns
+    // 'contact_id' instead of 'activity_contact_id'
+    $contact_id_index = array_search('contact_id', $return_fields);
+    if ($contact_id_index !== FALSE) {
+      $return_fields[$contact_id_index] = 'activity_contact_id';
+    }
     // Look up activities.
     $params = [
       'target_contact_id' => $contact_id,
       'activity_type_id'  => ['IN' => $this->tab_config->types ],
-      'return'            => $this->tab_config->columns,
+      'return'            => $return_fields,
       'sequential'        => TRUE,
+      'options'           => ['limit' => 0],
     ];
-    // We have to doctor the return array because getfields returns
-    // 'contact_id' instead of 'activity_contact_id'
-    $contact_id_index = array_search('contact_id', $params['return']);
-    if ($contact_id_index !== FALSE) {
-      $params['return'][$contact_id_index] = 'activity_contact_id';
-    }
 
     // Do API call.
     $result = civicrm_api3('Activity', 'get', $params);
@@ -212,10 +219,21 @@ class CRM_ActivityTab
       return;
     }
 
+    // Extract unique activity types.
+    $types = [];
+    foreach($rows as $row) {
+      $types[$row['activity_type_id']] = TRUE;
+    }
+
+    // Look them up.
     $types = civicrm_api3('OptionValue', 'get', [
       'return' => ['value', 'label'],
       'option_group_id' => 'activity_type',
+      'value' => ['IN' => array_keys($types)],
+      'options' => ['limit' => 0],
     ]);
+
+    // Create map
     $map = [];
     foreach ($types['values'] as $type) {
       $map[$type['value']] = $type['label'];

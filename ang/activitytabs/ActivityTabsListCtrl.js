@@ -9,15 +9,16 @@
         resolve: {
           activitytabsList: function(crmApi) {
             return crmApi('Setting', 'getvalue', { name: 'activitytabs' })
-            .then(r => JSON.parse(r.result), e => alert('Error fetching config.'))
+            .then(r => JSON.parse(r.result), e => alert('Error fetching config.'));
           },
           activityTypes: function(crmApi) {
             return crmApi('OptionValue', 'get', {
               "sequential": 1,
               "return": ["name","label"],
-              "option_group_id": "activity_type"
+              "option_group_id": "activity_type",
+              'options' : { limit: 0 }
             })
-            .then(r => r.values, e => alert('Error fetching config.'))
+            .then(r => r.values, e => alert('Error fetching config.'));
           },
           activityFields: function(crmApi) {
             return crmApi('Activity', 'getfields', { "api_action": "get" })
@@ -67,11 +68,20 @@
       $scope.cancelEdit();
       return saveSettings();
     };
+    $scope.addNew = function addNew() {
+      const i = $scope.activitytabsList.length;
+      $scope.activitytabsList.push(
+        {name: 'New Tab',
+          columns: ['activity_date_time',
+          'subject', 'assignee_contact_id'],
+          types: [] });
+      $scope.showEditScreen(i);
+    };
     $scope.cancelEdit = function cancelEdit() {
       $scope.editIndex = null;
       $scope.editItem = null;
       $scope.screen = 'list';
-    }
+    };
     $scope.showEditScreen = function (index) {
       $scope.editIndex = index;
       $scope.editItem = Object.assign({newcol: ''}, activitytabsList[index]);
