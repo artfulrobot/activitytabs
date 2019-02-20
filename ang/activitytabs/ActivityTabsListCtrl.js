@@ -23,7 +23,7 @@
           activityFields: function(crmApi) {
             return crmApi('Activity', 'getfields', { "api_action": "get" })
               .then(r => {
-                const opts = [{name: 'activitytabs_summary', title: 'Custom summary'}];
+                const opts = [];
                 Object.keys(r.values).forEach(k => { opts.push(r.values[k]); });
                 return opts;
               });
