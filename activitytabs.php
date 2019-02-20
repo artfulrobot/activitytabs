@@ -140,6 +140,21 @@ function activitytabs_civicrm_entityTypes(&$entityTypes) {
   _activitytabs_civix_civicrm_entityTypes($entityTypes);
 }
 
+function activitytabs_civicrm_navigationMenu(&$menu) {
+  _activitytabs_civix_insert_navigation_menu(
+    $menu,
+    'Administer/Customize Data and Screens',
+    [
+      'label'      => E::ts('Activity Tabs'),
+      'name'       => 'activity_tabs_config',
+      'url'        => 'civicrm/a/#/activitytabs',
+      'permission' => 'administer CiviCRM',
+      'attributes' => [],
+      'operator'   => 'OR',
+      'separator'  => 0,
+    ]
+  );
+}
 
 
 /**
