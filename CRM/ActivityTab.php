@@ -121,7 +121,7 @@ class CRM_ActivityTab
       'id'         => ['IN' => $activity_ids],
       'return'     => $return_fields,
       'sequential' => TRUE,
-      'options'    => ['limit' => 0],
+      'options'    => ['limit' => 0, 'sort' => 'activity_date_time DESC'],
     ];
     // Do API call.
     $result = civicrm_api3('Activity', 'get', $params);
