@@ -13,7 +13,7 @@
     <tr>
       {foreach from=$atabConfig->columns item=col key=j}
         <td>{if $col == 'activity_date_time'}
-        {$activity[$col]|date_format:'%d %b %Y %H:%M'}
+        {$activity[$col]|date_format:'%e %b %Y %H:%M'}
         {else}
         {$activity[$col]}
         {/if}

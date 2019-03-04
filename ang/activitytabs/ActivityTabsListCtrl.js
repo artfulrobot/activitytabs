@@ -55,11 +55,21 @@
     activityFields.forEach(t => columnsHash[t.name] = t.title);
 
     function saveSettings() {
+      var config = [];
+      activitytabsList.forEach(tab => {
+        const cleanTab = {};
+        cleanTab.columns = tab.columns;
+        cleanTab.name = tab.name;
+        cleanTab.types = tab.types;
+        cleanTab.record_types = tab.record_types;
+        config.push(cleanTab);
+      });
+
       return crmStatus(
         // Status messages. For defaults, just use "{}"
         {start: ts('Saving...'), success: ts('Saved')},
         // The save action. Note that crmApi() returns a promise.
-        crmApi('Setting', 'create', { 'activitytabs': JSON.stringify(activitytabsList) })
+        crmApi('Setting', 'create', { 'activitytabs': JSON.stringify(config) })
       );
     }
 
@@ -74,6 +84,7 @@
         {name: 'New Tab',
           columns: ['activity_date_time',
           'subject', 'assignee_contact_id'],
+          record_types: 'target',
           types: [] });
       $scope.showEditScreen(i);
     };
@@ -84,7 +95,7 @@
     };
     $scope.showEditScreen = function (index) {
       $scope.editIndex = index;
-      $scope.editItem = Object.assign({newcol: ''}, activitytabsList[index]);
+      $scope.editItem = Object.assign({newCol: ''}, activitytabsList[index]);
       $scope.screen = 'edit';
     };
     $scope.moveCol = function moveCol(i, dir) {

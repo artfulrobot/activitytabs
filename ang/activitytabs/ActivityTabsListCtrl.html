@@ -34,6 +34,19 @@
         <input crm-ui-id="activitytab.name" name="name" ng-model="editItem.name" required />
       </div>
 
+      <div crm-ui-field="{name: 'activitytab.record_types', title: ts('Relationship to Activity')}">
+        <select
+          ui-jq="select2"
+          ui-options="{dropdownAutoWidth: true}"
+          ng-model="editItem.record_types"
+          style="width:50em;max-width:100%;"
+          >
+          <option value="target" >Only show activities "With" the contact ("target" contact)</option>
+          <option value="assignee" >Only show activities assigned to the contact</option>
+          <option value="assignee,target" >Show both assignee and target activities</option>
+        </select>
+      </div>
+
       <div crm-ui-field="{name: 'activitytab.types', title: ts('Activity Types')}">
         <select
           multiple

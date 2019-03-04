@@ -69,17 +69,7 @@ class CRM_ActivityTab
    * @return int
    */
   public function getCount($contact_id) {
-
-    // Look up activities.
-    $params = [
-      'target_contact_id' => $contact_id,
-      'activity_type_id'  => ['IN' => $this->tab_config->types ],
-    ];
-
-    // Do API call.
-    $result = civicrm_api3('Activity', 'getcount', $params);
-
-    return (int) $result;
+    return (int) count($this->getActivityIds($contact_id));
   }
   /**
    *
@@ -108,12 +98,18 @@ class CRM_ActivityTab
    */
   public function getActivities($contact_id) {
 
+    $activity_ids = $this->getActivityIds($contact_id);
+    if (!$activity_ids) {
+      return ['count' => 0, 'values' => [], 'is_error' => 0];
+    }
+
     // Ensure we have activity_type_id in lookup, it's very useful even if it's
     // not needed in the final output.
     $return_fields = $this->tab_config->columns;
     if (!in_array('activity_type_id', $return_fields)) {
       $return_fields[] = 'activity_type_id';
     }
+
     // We have to doctor the return array because getfields returns
     // 'contact_id' instead of 'activity_contact_id'
     $contact_id_index = array_search('contact_id', $return_fields);
@@ -122,13 +118,11 @@ class CRM_ActivityTab
     }
     // Look up activities.
     $params = [
-      'target_contact_id' => $contact_id,
-      'activity_type_id'  => ['IN' => $this->tab_config->types ],
-      'return'            => $return_fields,
-      'sequential'        => TRUE,
-      'options'           => ['limit' => 0],
+      'id'         => ['IN' => $activity_ids],
+      'return'     => $return_fields,
+      'sequential' => TRUE,
+      'options'    => ['limit' => 0],
     ];
-
     // Do API call.
     $result = civicrm_api3('Activity', 'get', $params);
 
@@ -145,6 +139,67 @@ class CRM_ActivityTab
     }
 
     return $result;
+  }
+
+  /**
+   * Do API get call.
+   *
+   * Note: in CiviCRM 5.10.3 this fails:
+   * $params['options']['or'] = [['target_contact_id', 'assignee_contact_id']];
+   *
+   * but there again, so does and ActivityContact.get call which specifies a record_type
+   * so I'm resorting to SQL.
+   *
+   * @param int $contact_id
+   * @return Array of activity IDs.
+   */
+  public function getActivityIds($contact_id) {
+
+    if (!CRM_Utils_Rule::positiveInteger($contact_id)) {
+      // Cannot be any activities without a contact.
+      return [];
+    }
+    // Ensure we have an integer as we'll use this in SQL below.
+    $contact_id = (int) $contact_id;
+    $wheres = ["contact_id = $contact_id"];
+
+    // targets/assignees/both?
+    $record_types = [];
+    if (strpos($this->tab_config->record_types, 'target') !== FALSE) {
+      $record_types[] = 3; // target.
+    }
+    if (strpos($this->tab_config->record_types, 'assignee') !== FALSE) {
+      $record_types[] = 1; // assignee.
+    }
+    // Use a default, since not doing so will break the SQL.
+    if (!$record_types) {
+      $record_types[] = 3;
+    }
+    $record_types = implode(', ', $record_types);
+
+    // Look up activity type ids
+    $activity_type_ids = [];
+    foreach ($this->tab_config->types as $machine_name) {
+      $activity_type_ids[] = (int) CRM_Core_Pseudoconstant::getKey('CRM_Activity_BAO_Activity', 'activity_type_id',$machine_name);
+    }
+    $activity_type_ids = array_filter($activity_type_ids);
+    if ($activity_type_ids) {
+      // Otherwise I guess we load all activities. May be useful sometimes maybe...
+      $wheres[] = "activity_type_id IN (" . implode(',', $activity_type_ids) .")";
+    }
+
+    // Find activities.
+    $wheres = implode(' AND ', $wheres);
+    $sql = "SELECT DISTINCT a.id FROM civicrm_activity a
+            INNER JOIN civicrm_activity_contact ac ON a.id = ac.activity_id AND ac.record_type_id IN ($record_types)
+            WHERE $wheres";
+
+    $activity_ids = CRM_Core_DAO::executeQuery($sql)->fetchMap('id', 'id');
+    if ($activity_ids) {
+      return array_values($activity_ids);
+    }
+    // Return empty array if nothing found.
+    return [];
   }
 
   /**
