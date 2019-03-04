@@ -6,6 +6,9 @@ Features:
 
 - It allows you to easily set up new **tabs** which show only activities of certain types.
 
+- You can choose to show either or both activities that the contact is assigned
+  to or the target for ('with').
+
 - You can choose which fields from the activity to display in the table, including custom data.
 
 See below for usage.
