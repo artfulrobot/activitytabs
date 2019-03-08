@@ -129,6 +129,7 @@ class CRM_ActivityTab
     // Loop results to flatten the data to a table.
     $this->flattenContacts($result['values']);
     $this->replaceActivityTypeIds($result['values']);
+    $this->replaceActivityStatusIds($result['values']);
 
     // Rename 'source_contact_id' to 'contact_id' which is set in the config.
     if ($contact_id_index !== FALSE) {
@@ -296,6 +297,41 @@ class CRM_ActivityTab
 
     foreach ($rows as &$row) {
       $row['activity_type_id'] = $map[$row['activity_type_id']];
+    }
+  }
+  /**
+   * Replace Status IDs with labels.
+   *
+   * @param array &$rows from Activity.get API result.
+   */
+  public function replaceActivityStatusIds(&$rows) {
+
+    if (!in_array('status_id', $this->tab_config->columns)) {
+      return;
+    }
+
+    // Extract unique activity statuses.
+    $types = [];
+    foreach($rows as $row) {
+      $types[$row['status_id']] = TRUE;
+    }
+
+    // Look them up.
+    $types = civicrm_api3('OptionValue', 'get', [
+      'return' => ['value', 'label'],
+      'option_group_id' => 'activity_status',
+      'value' => ['IN' => array_keys($types)],
+      'options' => ['limit' => 0],
+    ]);
+
+    // Create map
+    $map = [];
+    foreach ($types['values'] as $type) {
+      $map[$type['value']] = $type['label'];
+    }
+
+    foreach ($rows as &$row) {
+      $row['status_id'] = $map[$row['status_id']];
     }
   }
   /**
