@@ -235,16 +235,18 @@ class CRM_ActivityTab
         }
       }
     }
-    if (!$contact_ids) {
-      return;
+    if ($contact_ids) {
+      $contact_details = civicrm_api3( 'Contact', 'get', [
+        'id' => ['IN' => array_keys($contact_ids)],
+        'return' => 'display_name']);
+      $contact_details = array_map(function($contact) {
+        $url = CRM_Utils_System::url('civicrm/contact/view', ['reset' => 1, 'cid' => $contact['contact_id']]);
+        return '<a href="' . $url . '" >' . htmlspecialchars($contact['display_name']) . '</a>';
+      }, $contact_details['values']);
     }
-    $contact_details = civicrm_api3( 'Contact', 'get', [
-      'id' => ['IN' => array_keys($contact_ids)],
-      'return' => 'display_name']);
-    $contact_details = array_map(function($contact) {
-      $url = CRM_Utils_System::url('civicrm/contact/view', ['reset' => 1, 'cid' => $contact['contact_id']]);
-      return '<a href="' . $url . '" >' . htmlspecialchars($contact['display_name']) . '</a>';
-    }, $contact_details['values']);
+    else {
+      $contact_details = [];
+    }
 
     // Replace with html.
     foreach ($rows as &$row) {
@@ -253,12 +255,12 @@ class CRM_ActivityTab
           if (is_array($row[$col])) {
             $html = [];
             foreach ($row[$col] as $contact_id) {
-              $html[] = $contact_details[$contact_id];
+              $html[] = $contact_details[$contact_id] ?? '';
             }
             $row[$col] = implode(', ', $html);
           }
           else {
-            $row[$col] = $contact_details[$row[$col]];
+            $row[$col] = $contact_details[$row[$col]] ?? '';
           }
         }
       }
