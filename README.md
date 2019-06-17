@@ -85,3 +85,12 @@ Then view a contact's record:
 ## Known Issues
 
 This is in early development, and there could be lots of ways to improve it. Feel free to add an issue, and [get in touch](https://artfulrobot.uk/contact) if you'd like to fund a feature. PRs welcome too!
+
+## Release notes.
+
+### v1.2.2
+
+- Show labels instead of raw values for fields that use option groups (e.g.
+  selects.)
+
+- Present custom date fields in their configured format.

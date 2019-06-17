@@ -8,6 +8,8 @@ class CRM_ActivityTab
    */
   public $tab_config;
 
+  /** @var Array */
+  public $field_metadata;
   /**
    * Return the tabs config.
    */
@@ -32,6 +34,40 @@ class CRM_ActivityTab
    */
   public function setConfig($config) {
     $this->tab_config = $config;
+
+    // Look up metadata about the fields involved.
+    $all_fields = civicrm_api3('Activity', 'getfields', [ 'api_action' => "get" ]);
+
+    $option_group_ids = [];
+    foreach ($this->tab_config->columns as $col) {
+
+      $field = $all_fields['values'][$col];
+      // Copy the field metadata.
+      $this->field_metadata[$col] = $field;
+
+      // Does this field uses an option group lookup?
+      if (!empty($field['option_group_id'])) {
+        $option_group_ids[$col] = $field['option_group_id'];
+      }
+    }
+
+    // Create replacement tables for option groups.
+    if ($option_group_ids) {
+      // Load all the options for all these groups.
+      $result = civicrm_api3('OptionValue', 'get', [
+        'return' => ['label', 'value', 'option_group_id'],
+        'option_group_id' => ['IN' => $option_group_ids],
+      ]);
+
+      foreach ($option_group_ids as $col_1 => $option_group_id) {
+        foreach ($result['values'] as $_) {
+          if ($_['option_group_id'] == $option_group_id) {
+            $this->field_metadata[$col_1]['replacements'][$_['value']] = $_['label'];
+          }
+        }
+      }
+    }
+
     return $this;
   }
 
@@ -130,6 +166,8 @@ class CRM_ActivityTab
     $this->flattenContacts($result['values']);
     $this->replaceActivityTypeIds($result['values']);
     $this->replaceActivityStatusIds($result['values']);
+    $this->replaceSelectFields($result['values']);
+    $this->replaceDateFields($result['values']);
 
     // Rename 'source_contact_id' to 'contact_id' which is set in the config.
     if ($contact_id_index !== FALSE) {
@@ -334,6 +372,50 @@ class CRM_ActivityTab
 
     foreach ($rows as &$row) {
       $row['status_id'] = $map[$row['status_id']];
+    }
+  }
+  /**
+   * Replace Select options with their labels.
+   *
+   * @param array &$rows from Activity.get API result.
+   */
+  public function replaceSelectFields(&$rows) {
+
+    foreach ($this->field_metadata as $col => $meta) {
+      if (!empty($meta['replacements'])) {
+        foreach ($rows as &$row) {
+          if (isset($meta['replacements'][$row[$col]])) {
+            $row[$col] = $meta['replacements'][$row[$col]];
+          }
+        }
+      }
+    }
+  }
+  /**
+   * Format date fields.
+   *
+   * @param array &$rows from Activity.get API result.
+   */
+  public function replaceDateFields(&$rows) {
+    $bizarre_format_code_map = CRM_Utils_Date::datePluginToPHPFormats();
+
+    foreach ($this->tab_config->columns as $col) {
+      if (!empty($this->field_metadata[$col]['date_format'])) {
+        $format = $bizarre_format_code_map[$this->field_metadata[$col]['date_format']] ?? 'Y-m-d';
+        if (!empty($this->field_metadata[$col]['time_format'])) {
+          if ($this->field_metadata[$col]['time_format'] == 1) {
+            $format .= ' g:ia';
+          }
+          elseif ($this->field_metadata[$col]['time_format'] == 2) {
+            $format .= ' H:i';
+          }
+        }
+        foreach ($rows as &$row) {
+          if ($row[$col]) {
+            $row[$col] = date($format, strtotime($row[$col]));
+          }
+        }
+      }
     }
   }
   /**
