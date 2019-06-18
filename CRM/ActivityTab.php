@@ -57,6 +57,7 @@ class CRM_ActivityTab
       $result = civicrm_api3('OptionValue', 'get', [
         'return' => ['label', 'value', 'option_group_id'],
         'option_group_id' => ['IN' => $option_group_ids],
+        'options' => ['limit' => 0],
       ]);
 
       foreach ($option_group_ids as $col_1 => $option_group_id) {
@@ -274,6 +275,7 @@ class CRM_ActivityTab
       }
     }
     if ($contact_ids) {
+      // Deliberately left default 25 limit in.
       $contact_details = civicrm_api3( 'Contact', 'get', [
         'id' => ['IN' => array_keys($contact_ids)],
         'return' => 'display_name']);
