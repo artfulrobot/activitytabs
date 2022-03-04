@@ -41,7 +41,7 @@ class CRM_ActivityTab
     $option_group_ids = [];
     foreach ($this->tab_config->columns as $col) {
 
-      $field = $all_fields['values'][$col];
+      $field = $all_fields['values'][$col] ?? NULL;
       // Copy the field metadata.
       $this->field_metadata[$col] = $field;
 
